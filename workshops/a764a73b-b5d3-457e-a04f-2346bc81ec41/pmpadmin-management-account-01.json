@@ -1,0 +1,141 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS Private Marketplace Roles & Permissions Lab",
+    "Outputs":
+    {
+        "pmpadmin":
+        {
+            "Description": "Use this role to manage Private Experiences",
+            "Value":
+            {
+                "Fn::Sub": "https://signin.aws.amazon.com/switchrole?account=${AWS::AccountId}&roleName=${pmpadmin}&displayName=pmpadmin"
+            }
+        },
+        "MPAdminLinks":
+        {
+            "Description": "https://aws.amazon.com/marketplace/privatemarketplace#/ https://aws.amazon.com/marketplace/privatemarketplace/requests https://aws.amazon.com/marketplace/privatemarketplace#/dashboard",
+            "Value": "https://aws.amazon.com/marketplace/privatemarketplace#/ https://aws.amazon.com/marketplace/privatemarketplace/requests https://aws.amazon.com/marketplace/privatemarketplace#/dashboard"
+        }
+    },
+    "Resources":
+    {
+        "pmpadmin":
+        {
+            "Properties":
+            {
+                "AssumeRolePolicyDocument":
+                {
+                    "Statement":
+                    [
+                        {
+                            "Action":
+                            [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal":
+                            {
+                                "AWS":
+                                [
+                                    {
+                                        "Ref": "AWS::AccountId"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "Path": "/",
+                "Policies":
+                [
+                    {
+                        "PolicyDocument":
+                        {
+                            "Statement":
+                            [
+                                {
+                                    "Action":
+                                    [
+                                        "aws-marketplace:ListPrivateMarketplaceRequests",
+                                        "aws-marketplace:DescribePrivateMarketplaceRequests"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource":
+                                    [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "Action":
+                                    [
+                                        "aws-marketplace:AssociateProductsWithPrivateMarketplace",
+                                        "aws-marketplace:DisassociateProductsFromPrivateMarketplace"
+                                    ],
+                                    "Effect": "Deny",
+                                    "Resource":
+                                    [
+                                        "*"
+                                    ]
+                                },
+                                {
+                                    "Action":
+                                    [
+                                        "aws-marketplace:DescribeEntity",
+                                        "aws-marketplace:ListEntities",
+                                        "aws-marketplace:ListChangeSets",
+                                        "aws-marketplace:DescribeChangeSet",
+                                        "aws-marketplace:CancelChangeSet"
+                                    ],
+                                    "Effect": "Allow",
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Action":
+                                    [
+                                        "aws-marketplace:StartChangeSet"
+                                    ],
+                                    "Condition":
+                                    {
+                                        "StringNotEquals":
+                                        {
+                                            "catalog:ChangeType":
+                                            [
+                                                "AllowProductProcurement",
+                                                "DenyProductProcurement"
+                                            ]
+                                        }
+                                    },
+                                    "Effect": "Allow",
+                                    "Resource": "*"
+                                },
+                                {
+                                    "Action":
+                                    [
+                                        "aws-marketplace:StartChangeSet"
+                                    ],
+                                    "Condition":
+                                    {
+                                        "StringEquals":
+                                        {
+                                            "catalog:ChangeType":
+                                            [
+                                                "AllowProductProcurement",
+                                                "DenyProductProcurement"
+                                            ]
+                                        }
+                                    },
+                                    "Effect": "Deny",
+                                    "Resource": "*"
+                                }
+                            ],
+                            "Version": "2012-10-17"
+                        },
+                        "PolicyName": "pmpadmin"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::Role"
+        }
+    }
+}
